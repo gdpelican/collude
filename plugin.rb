@@ -10,6 +10,7 @@ end
 
 after_initialize do
   collude_require 'controllers/posts_controller'
+  collude_require 'models/collusion'
   collude_require 'routes'
 
   if !PostCustomField.new.respond_to?(:collusion)
