@@ -11,4 +11,9 @@ end
 after_initialize do
   collude_require 'controllers/posts_controller'
   collude_require 'routes'
+
+  if !PostCustomField.new.respond_to?(:collusion)
+    collude_require 'migrations/add_collusions'
+    AddCollusions.new.up
+  end
 end
