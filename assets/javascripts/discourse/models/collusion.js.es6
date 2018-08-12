@@ -1,11 +1,9 @@
 import Topic from 'discourse/models/topic'
 
-const Collusion = Topic.extend({
+export default Topic.extend({
   changesets: {
     performed: [],
     submitted: [],
     confirmed: []
   }
 })
-
-export default Collusion

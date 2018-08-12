@@ -2,7 +2,6 @@ class Collusion < PostCustomField
   validates        :user,      presence: true
   validates        :post,      presence: true
   validates        :changeset, presence: true
-  validates        :length,    numericality: { greater_than: 0 }
   validates        :version,   numericality: { greater_than: 0 }
   after_initialize :set_name
 
@@ -12,7 +11,7 @@ class Collusion < PostCustomField
       define_method :"#{field}=", ->(val) { collusion[field] = val }
     end
   end
-  collusion_accessor :user_id, :changeset, :length, :version
+  collusion_accessor :user_id, :changeset, :version
 
   def user
     @user ||= User.find_by(id: user_id)

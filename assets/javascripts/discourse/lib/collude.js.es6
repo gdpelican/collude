@@ -1,49 +1,57 @@
-import registry from './collude-registry'
 import Collusion from '../models/collusion'
 import { ajax } from 'discourse/lib/ajax'
 
-// returns whether a user may collaboratively edit this document
-let canCollude = function(post) {
-  return post.post_number == 1
+let messageBus = function() {
+  return Discourse.__container__.lookup('message-bus:main')
 }
 
-// returns whether a user is currently editing this document
-let isColluding = function(post) {
-  return registry._posts[post.id]
+// returns whether a user may collaboratively edit this document
+let canCollude = function(post) {
+  return post.post_number == 1 // TODO: make this correct
 }
 
 // connect to server and request initial document
-let loadCollusion = function(topic) {
-  let post = topic.get('postStream.posts')[0]
-  if (!post || post.post_number != 1) { return }
-  return ajax(`/posts/${post.id}/collude`).then((data) => {
+let setupCollusion = function(topic) {
+  let post = firstPostFor(topic)
+  if (!post) { return }
+
+  return ajax(`/collusions/${post.id}`).then((data) => {
+    topic.set('isColluding', true)
+    messageBus().subscribe(`/collusions/${post.id}`, (changeset) => { makeChange(topic, changeset) })
     return new Collusion(data)
   })
 }
 
 // enter new text into the text field
-let makeChange = function(changeset) {
-
+let makeChange = function(topic, changeset) {
+  let resolved = changeset // TODO: actually resolve from changesets.performed
+  topic.set('changesets.performed', resolved)
 }
 
 // push local changes to the server
-let submitChange = function(changeset) {
+let submitChange = function(topic) {
+  let post = firstPostFor(topic)
+  if (!post) { return }
 
+  topic.set('changesets.submitted', topic.changesets.performed)
+  return ajax(`/collusions`, { type: 'POST', data: {
+    post_id:   post.id,
+    changeset: changeset
+  }}).then((data) => {
+    topic.set('changesets.confirmed', data)
+  })
 }
 
-// receive server acknoledgement that the pushed changes have been applied
-let confirmChange = function(changeset) {
-
+let teardownCollusion = function(topic) {
+  let post = firstPostFor(topic)
+  if (!post) { return }
+  topic.set('isColluding', false)
+  messageBus().unsubscribe(`/collusions/${post.id}`)
 }
 
-// apply changes from other clients to the server
-let acknowledgeChange = function(changeset) {
-
+let firstPostFor = function(topic) {
+  let post = topic.get('postStream.posts.0')
+  if (post && post.post_number == 1) { return post }
 }
 
-// disconnect from the editing engine
-let desist = function(post) {
-  delete registry._posts[post.id]
-}
-
-export { canCollude, isColluding, loadCollusion, makeChange, submitChange, confirmChange, acknowledgeChange, desist }
+export { canCollude, setupCollusion, teardownCollusion, makeChange, submitChange }

@@ -9,10 +9,11 @@ def collude_require(path)
 end
 
 after_initialize do
-  collude_require 'controllers/posts_controller'
+  collude_require 'controllers/collusions_controller'
   collude_require 'models/changeset'
   collude_require 'models/collusion'
   collude_require 'models/post'
+  collude_require 'serializers/collusion_serializer'
   collude_require 'routes'
 
   if !PostCustomField.new.respond_to?(:collusion)

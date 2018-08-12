@@ -1,3 +1,3 @@
 class CollusionSerializer < ActiveModel::Serializer
-  attributes :version, :user_id, :post_id, :length, :value, :changeset
+  attributes :version, :user_id, :post_id, :value, :changeset
 end

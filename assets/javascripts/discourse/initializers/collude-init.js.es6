@@ -1,5 +1,5 @@
 import { withPluginApi } from 'discourse/lib/plugin-api'
-import { isColluding, loadCollusion, canCollude } from '../lib/collude'
+import { setupCollusion, teardownCollusion, canCollude } from '../lib/collude'
 import { default as computed, on } from 'ember-addons/ember-computed-decorators'
 
 const COLLUDE_ACTION = 'colludeOnTopic'
@@ -12,11 +12,11 @@ export default {
       if (!siteSettings.collude_enabled) { return }
 
       api.addPostMenuButton('collude', (post) => {
-        if (canCollude(post) && !isColluding(post)) {
+        if (canCollude(post)) {
           return {
-            action: 'colludeOnTopic',
-            icon: (isColluding(post) ? 'hand-paper-o' : 'handshake-o'),
-            title: 'collude.button_title',
+            action:   COLLUDE_ACTION,
+            icon:     'handshake-o',
+            title:    'collude.button_title',
             position: 'first'
           }
         }
@@ -30,14 +30,19 @@ export default {
         init() {
           this._super()
           this.appEvents.on('collude-on-topic', () => {
-            loadCollusion(this.model).then((collusion) => {
-              this.get("composer").open({
-                topic:       collusion,
-                action:      COLLUDE_ACTION,
-                draftKey:    collusion.draftKey,
-                topicBody:   collusion.body()
+            if (this.model.isColluding) {
+              teardownCollusion(this.model)
+            } else {
+              setupCollusion(this.model).then((data) => {
+                let collusion = data.collusion
+                this.get("composer").open({
+                  topic:       this.model,
+                  action:      COLLUDE_ACTION,
+                  draftKey:    this.model.draft_key,
+                  topicBody:   collusion.value
+                })
               })
-            })
+            }
           })
         },
 
@@ -45,11 +50,6 @@ export default {
           this._super()
           this.appEvents.off('collude-on-topic')
         }
-      })
-
-      api.decorateWidget('post-contents:after-cooked', (helper) => {
-        let post = helper.getModel()
-        return isColluding(post) ? helper.attach('collude-textarea', { post }) : null
       })
     })
   }
