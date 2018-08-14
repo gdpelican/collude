@@ -19,7 +19,7 @@ class CollusionsController < ApplicationController
     @collusion ||= Collusion.create(
       user:      current_user,
       post:      load_post,
-      version:   load_post.maximum_version + 1,
+      version:   load_post.max_collusion_version + 1,
       changeset: next_changeset.to_json,
       value:     next_changeset.apply_to(load_post.latest_collusion.value)
     )
@@ -30,7 +30,7 @@ class CollusionsController < ApplicationController
   end
 
   def load_post
-    @post ||= Post.find(params.require(:id))
+    @post ||= Post.find_by(post_number: 1, topic_id: params.require(:id))
   end
 
   def changeset_param

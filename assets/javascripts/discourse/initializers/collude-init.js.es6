@@ -1,6 +1,11 @@
 import { withPluginApi } from 'discourse/lib/plugin-api'
-import { setupCollusion, teardownCollusion, canCollude } from '../lib/collude'
-import { default as computed, on } from 'ember-addons/ember-computed-decorators'
+import { default as computed, on, observes } from 'ember-addons/ember-computed-decorators'
+import {
+  setupCollusion,
+  teardownCollusion,
+  performCollusion,
+  canCollude
+} from '../lib/collude'
 
 const COLLUDE_ACTION = 'colludeOnTopic'
 
@@ -12,13 +17,12 @@ export default {
       if (!siteSettings.collude_enabled) { return }
 
       api.addPostMenuButton('collude', (post) => {
-        if (canCollude(post)) {
-          return {
-            action:   COLLUDE_ACTION,
-            icon:     'handshake-o',
-            title:    'collude.button_title',
-            position: 'first'
-          }
+        if (!canCollude(post)) { return }
+        return {
+          action:   COLLUDE_ACTION,
+          icon:     'handshake-o',
+          title:    'collude.button_title',
+          position: 'first'
         }
       })
 
@@ -30,25 +34,40 @@ export default {
         init() {
           this._super()
           this.appEvents.on('collude-on-topic', () => {
-            if (this.model.isColluding) {
-              teardownCollusion(this.model)
-            } else {
-              setupCollusion(this.model).then((data) => {
-                let collusion = data.collusion
-                this.get("composer").open({
-                  topic:       this.model,
-                  action:      COLLUDE_ACTION,
-                  draftKey:    this.model.draft_key,
-                  topicBody:   collusion.value
-                })
-              })
-            }
+            this.get('composer').open({
+              topic:       this.model,
+              action:      COLLUDE_ACTION,
+              draftKey:    this.model.draft_key
+            })
           })
         },
 
         willDestroy() {
           this._super()
           this.appEvents.off('collude-on-topic')
+        }
+      })
+
+      api.modifyClass('controller:composer', {
+        open(opts) {
+          this._super(opts).then(() => {
+            if (opts.action == COLLUDE_ACTION) { setupCollusion(this.model) }
+          })
+        },
+
+        close() {
+          if (this.model.action == COLLUDE_ACTION) { teardownCollusion(this.model) }
+          return this._super()
+        },
+
+        @observes('model.reply')
+        _handleCollusion() {
+          if (this.model.action == COLLUDE_ACTION) { performCollusion(this.model) }
+        },
+
+        _saveDraft() {
+          if (this.model.action == COLLUDE_ACTION) { return }
+          return this._super()
         }
       })
     })

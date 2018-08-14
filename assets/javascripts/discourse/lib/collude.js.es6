@@ -1,4 +1,3 @@
-import Collusion from '../models/collusion'
 import { ajax } from 'discourse/lib/ajax'
 
 let messageBus = function() {
@@ -11,47 +10,56 @@ let canCollude = function(post) {
 }
 
 // connect to server and request initial document
-let setupCollusion = function(topic) {
-  let post = firstPostFor(topic)
-  if (!post) { return }
+let setupCollusion = function(composer) {
+  composer.set('changesets', {})
 
-  return ajax(`/collusions/${post.id}`).then((data) => {
-    topic.set('isColluding', true)
-    messageBus().subscribe(`/collusions/${post.id}`, (changeset) => { makeChange(topic, changeset) })
-    return new Collusion(data)
-  })
-}
+  let resolve = (data) => {
+    console.log('resolving...')
+    composer.set('changesets.performed', resolveChangeset(composer.changesets.performed, data.collusion.changeset))
+    composer.set('changesets.submitted', resolveChangeset(composer.changesets.submitted, data.collusion.changeset))
+    composer.set('changesets.confirmed', resolveChangeset(composer.changesets.confirmed, data.collusion.changeset))
+    // TODO set composer.reply from composer.changesets.performed
+  }
 
-// enter new text into the text field
-let makeChange = function(topic, changeset) {
-  let resolved = changeset // TODO: actually resolve from changesets.performed
-  topic.set('changesets.performed', resolved)
+  messageBus().subscribe(`/collusions/${composer.get('topic.id')}`, resolve)
+  ajax(`/collusions/${composer.get('topic.id')}`).then(resolve)
 }
 
 // push local changes to the server
-let submitChange = function(topic) {
-  let post = firstPostFor(topic)
-  if (!post) { return }
+let performCollusion = function(composer, changeset) {
+  if (!composer.changesets) { return }
 
-  topic.set('changesets.submitted', topic.changesets.performed)
-  return ajax(`/collusions`, { type: 'POST', data: {
-    post_id:   post.id,
-    changeset: changeset
-  }}).then((data) => {
-    topic.set('changesets.confirmed', data)
-  })
+  console.log('performing change..')
+  changeset = changeset || buildChangeset(composer.reply)
+  composer.set('changesets.performed', resolveChangeset(composer.changesets.performed, changeset))
+
+  Ember.run.debounce(this, () => {
+    composer.set('changesets.submitted', composer.changesets.performed)
+
+    ajax(`/collusions`, { type: 'POST', data: {
+      id:        composer.get('topic.id'),
+      changeset: changeset
+    }}).then((confirmed) => {
+      console.log('confirming change..')
+      composer.set('changesets.confirmed', confirmed)
+    })
+  }, 1000)
 }
 
-let teardownCollusion = function(topic) {
-  let post = firstPostFor(topic)
-  if (!post) { return }
-  topic.set('isColluding', false)
-  messageBus().unsubscribe(`/collusions/${post.id}`)
+let teardownCollusion = function(composer) {
+  messageBus().unsubscribe(`/collusions/${composer.get('topic.id')}`)
 }
 
-let firstPostFor = function(topic) {
-  let post = topic.get('postStream.posts.0')
-  if (post && post.post_number == 1) { return post }
+let resolveChangeset = function(prev, next) {
+  return next // TODO actually resolve changesets here
 }
 
-export { canCollude, setupCollusion, teardownCollusion, makeChange, submitChange }
+let buildChangeset = function(text) {
+  return {
+    length_before: 0,
+    length_after: text.length,
+    changes: text.split('')
+  } // TODO I think this might be wrong
+}
+
+export { canCollude, setupCollusion, teardownCollusion, performCollusion }
