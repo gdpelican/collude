@@ -56,17 +56,17 @@ export default {
         },
 
         close() {
-          if (this.model.action == COLLUDE_ACTION) { teardownCollusion(this.model) }
+          if (this.get('model.action') == COLLUDE_ACTION) { teardownCollusion(this.model) }
           return this._super()
         },
 
         @observes('model.reply')
         _handleCollusion() {
-          if (this.model.action == COLLUDE_ACTION) { performCollusion(this.model) }
+          if (this.get('model.action') == COLLUDE_ACTION) { performCollusion(this.model) }
         },
 
         _saveDraft() {
-          if (this.model.action == COLLUDE_ACTION) { return }
+          if (this.get('model.action') == COLLUDE_ACTION) { return }
           return this._super()
         }
       })
