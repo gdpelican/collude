@@ -16,12 +16,8 @@ after_initialize do
   collude_require 'serializers/collusion_serializer'
   collude_require 'routes'
 
-  # if !PostCustomField.new.respond_to?(:collusion)
-  #   collude_require 'migrations/add_collusions'
-  #   AddCollusions.new.up
-  # end
-
-  on :post_created do |post|
-    Jobs.enqueue(:setup_initial_collusion, post_id: post.id) if post.can_collude?
+  if !PostCustomField.new.respond_to?(:collusion)
+    collude_require 'migrations/add_collusions'
+    AddCollusions.new.up
   end
 end

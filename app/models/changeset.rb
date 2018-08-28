@@ -6,10 +6,10 @@ Changeset = Struct.new(:length_before, :length_after, :changes, keyword_init: tr
 
   def apply_to(body)
     return if self.length_before != body.length
-    self.changes.map { |change| change.is_a?(Integer) ? body[change] : change }
+    self.changes.map { |change| change.is_a?(Integer) ? body[change] : change }.join
   end
 
-  def to_json
+  def to_json(opts = {})
     {
       length_before: length_before.to_i,
       length_after:  length_after.to_i,
@@ -19,9 +19,9 @@ Changeset = Struct.new(:length_before, :length_after, :changes, keyword_init: tr
 
   def compose(other)
     Changeset.new(
-      length_before: other.length_before,
-      length_after:  self.length_after,
-      changes: (0...self.length_after).map { |index|
+      length_before: other.length_before.to_i,
+      length_after:  self.length_after.to_i,
+      changes: (0...self.length_after.to_i).map { |index|
         (self.changes[index] unless self.changes[index].is_a?(Integer)) ||
         (other.changes[index] unless other.changes[index].is_a?(Integer)) ||
         index
@@ -32,6 +32,6 @@ Changeset = Struct.new(:length_before, :length_after, :changes, keyword_init: tr
   private
 
   def merge(other)
-    # ??
+    # TODO
   end
 end

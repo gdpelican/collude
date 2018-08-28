@@ -22,7 +22,7 @@ class Collusion < PostCustomField
       post:      post,
       version:   post.max_collusion_version.to_i + 1,
       changeset: next_changeset.to_json,
-      value:     next_changeset.apply_to(post.latest_collusion.value)
+      value:     next_changeset.apply_to(post.latest_collusion.value.to_s)
     )
   end
 

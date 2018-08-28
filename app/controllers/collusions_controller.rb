@@ -5,9 +5,9 @@ class CollusionsController < ApplicationController
 
   def create
     if create_collusion.persisted?
-      json = CollusionSerializer.new(create_collusion).as_json
-      MessageBus.publish "/collusions/#{load_post.id}", json
-      render json: json
+      data = CollusionSerializer.new(create_collusion).as_json
+      MessageBus.publish "/collusions/#{load_post.id}", data.to_json
+      render json: data.to_json
     else
       render json: create_collusion.errors, status: :unprocessable_entity
     end
@@ -20,7 +20,10 @@ class CollusionsController < ApplicationController
   end
 
   def changeset_params
-    params.require(:changeset).permit(:length_before, :length_after, changes: []).to_h
+    params.require(:changeset).permit(:length_before, :length_after, changes: []).to_h.tap do |hash|
+      hash[:length_before] = hash[:length_before].to_i
+      hash[:length_after] = hash[:length_before].to_i
+    end
   end
 
   def load_post

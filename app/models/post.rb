@@ -12,7 +12,7 @@ class ::Post
 
   def latest_collusion
     return unless can_collude?
-    self.collusions.find_by("collusion ->>'version' = ?", max_collusion_version)
+    self.collusions.find_by("collusion ->>'version' = ?", max_collusion_version) || setup_initial_collusion!
   end
 
   def setup_initial_collusion!

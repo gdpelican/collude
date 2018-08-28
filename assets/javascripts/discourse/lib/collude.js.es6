@@ -11,16 +11,13 @@ let canCollude = function(post) {
 
 // connect to server and request initial document
 let setupCollusion = function(composer) {
-  composer.set('changesets', {
-    performed: emptyChangeset(),
-    submitted: emptyChangeset(),
-    confirmed: emptyChangeset()
-  })
-
   let resolve = (data) => {
-    composer.set('changesets.confirmed', data.collusion.changeset)
-    composer.set('changesets.performed', resolveChangeset(composer.changesets.performed, composer.changesets.confirmed))
-    composer.set('reply', buildText(composer.changesets.performed))
+    composer.set('changesets', {
+      performed: data.collusion.changeset,
+      submitted: data.collusion.changeset,
+      confirmed: data.collusion.changeset
+    })
+    composer.set('reply', data.collusion.value)
   }
 
   messageBus().subscribe(`/collusions/${composer.get('topic.id')}`, resolve)
@@ -36,6 +33,8 @@ let performCollusion = function(composer) {
     length_after:  composer.reply.length,
     changes:       composer.reply.split('')
   }))
+
+  if (_.isEqual(composer.changesets.performed, composer.changesets.submitted)) { return }
 
   Ember.run.debounce(this, () => {
     composer.set('changesets.submitted', composer.changesets.performed)
@@ -54,24 +53,26 @@ let teardownCollusion = function(composer) {
 }
 
 let resolveChangeset = function(prev, next) {
+  if (_.isEqual(prev, next)) { return prev }
   return {
     length_before: prev.changes.length,
     length_after:  next.changes.length,
     changes:       _.range(next.changes.length).map((index) => {
-      return (next.changes[index] == prev.changes[index] && index)           ||
-             (typeof next.changes[index] == 'string' && next.changes[index]) ||
-             (typeof prev.changes[index] == 'string' && prev.changes[index]) ||
-             index
+      if (next.changes[index] == prev.changes[index]) {
+        return index
+      } else if (typeof next.changes[index] == 'string') {
+        return next.changes[index]
+      } else if (typeof prev.changes[index] == 'string') {
+        return prev.changes[index]
+      } else {
+        return index
+      }
     })
   }
 }
 
 let buildText = function(changeset) {
   return changeset.changes.join('') // TODO this is also potentially quite wrong
-}
-
-let emptyChangeset = function() {
-  return { length_before: 0, length_after: 0, changes: [] }
 }
 
 export { canCollude, setupCollusion, teardownCollusion, performCollusion }
