@@ -12,12 +12,12 @@ let canCollude = function(post) {
 // connect to server and request initial document
 let setupCollusion = function(composer) {
   let resolve = (data) => {
+    composer.set('reply', data.collusion.value)
     composer.set('changesets', {
       performed: data.collusion.changeset,
       submitted: data.collusion.changeset,
       confirmed: data.collusion.changeset
     })
-    composer.set('reply', data.collusion.value)
   }
 
   messageBus().subscribe(`/collusions/${composer.get('topic.id')}`, resolve)
@@ -31,7 +31,7 @@ let performCollusion = function(composer) {
   composer.set('changesets.performed', resolveChangeset(composer.changesets.performed, {
     length_before: 0,
     length_after:  composer.reply.length,
-    changes:       composer.reply.split('')
+    changes:       [composer.reply]
   }))
 
   if (_.isEqual(composer.changesets.performed, composer.changesets.submitted)) { return }
@@ -55,24 +55,56 @@ let teardownCollusion = function(composer) {
 let resolveChangeset = function(prev, next) {
   if (_.isEqual(prev, next)) { return prev }
   return {
-    length_before: prev.changes.length,
-    length_after:  next.changes.length,
-    changes:       _.range(next.changes.length).map((index) => {
-      if (next.changes[index] == prev.changes[index]) {
-        return index
-      } else if (typeof next.changes[index] == 'string') {
-        return next.changes[index]
-      } else if (typeof prev.changes[index] == 'string') {
-        return prev.changes[index]
-      } else {
-        return index
-      }
-    })
+    length_before: prev.length_after,
+    length_after:  next.length_after,
+    changes:       resolveChanges(prev, next)
   }
 }
 
-let buildText = function(changeset) {
-  return changeset.changes.join('') // TODO this is also potentially quite wrong
+let resolveChanges = function(prev, next) {
+  const _prev = fullChangesArray(prev)
+  const _next = fullChangesArray(next)
+  return compressChanges(_.range(_next.length).map((index) => {
+    if (_next[index] == _prev[index]) { return index }
+    return (
+      typeof _next[index] == 'string' && _next[index] ||
+      typeof _prev[index] == 'string' && _prev[index] ||
+      index
+    )
+  }))
+}
+
+let compressChanges = function(expanded) {
+  return _.reduce(expanded, (array, change) => {
+    let prevMode = (_.last(array) || []).slice(0,2) == 'øø' ? 'unchanged' : 'changed'
+    let currMode = typeof change == 'number'                ? 'unchanged' : 'changed'
+
+    if (prevMode == currMode) {
+      let curr = array.pop() || []
+      switch(prevMode) {
+        case 'changed':   array.push(`${curr}${change}`);                break
+        case 'unchanged': array.push(`${curr.split('-')[0]}-${change}`); break
+      }
+    } else {
+      switch(currMode) {
+        case 'changed':   array.push(change);                  break
+        case 'unchanged': array.push(`øø${change}-${change}`); break
+      }
+    }
+
+    return array
+  }, [])
+}
+
+let fullChangesArray = function(changeset) {
+  return _.reduce(changeset.changes, (array, change) => {
+    if (change.slice(0,1) == 'øø') {
+      b, e = change.replace('øø', '').split('-')
+      return array.concat(_.range(b, e+1))
+    } else {
+      return array.concat(change.split(''))
+    }
+  }, [])
 }
 
 export { canCollude, setupCollusion, teardownCollusion, performCollusion }

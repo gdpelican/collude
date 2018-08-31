@@ -1,12 +1,7 @@
 Changeset = Struct.new(:length_before, :length_after, :changes, keyword_init: true) do
 
-  def compose_with(other)
-    self.compose(other) || other.compose(self)
-  end
-
-  def apply_to(body)
-    return if self.length_before != body.length
-    self.changes.map { |change| change.is_a?(Integer) ? body[change] : change }.join
+  def apply_to(collusion)
+    if needs_merge?(collusion) then merge(collusion) else apply(collusion) end
   end
 
   def to_json(opts = {})
@@ -17,21 +12,27 @@ Changeset = Struct.new(:length_before, :length_after, :changes, keyword_init: tr
     }
   end
 
-  def compose(other)
-    Changeset.new(
-      length_before: other.length_before.to_i,
-      length_after:  self.length_after.to_i,
-      changes: (0...self.length_after.to_i).map { |index|
-        (self.changes[index] unless self.changes[index].is_a?(Integer)) ||
-        (other.changes[index] unless other.changes[index].is_a?(Integer)) ||
-        index
-      }
-    ) if self.length_before == other.length_after
-  end
-
   private
 
-  def merge(other)
+  def range_from(change)
+    Range.new(*change[2..-1].split('-').map(&:to_i)) if change[0..1] == 'øø'
+  end
+
+  def needs_merge?(collusion)
+    collusion.value.length != self.length_before
+  end
+
+  def apply(collusion)
+    self.changes.reduce("") do |value, change|
+      value + if range = range_from(change)
+        collusion.value[range]
+      else
+        change
+      end
+    end
+  end
+
+  def merge(collusion)
     # TODO
   end
 end

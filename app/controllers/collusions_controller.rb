@@ -22,7 +22,7 @@ class CollusionsController < ApplicationController
   def changeset_params
     params.require(:changeset).permit(:length_before, :length_after, changes: []).to_h.tap do |hash|
       hash[:length_before] = hash[:length_before].to_i
-      hash[:length_after] = hash[:length_before].to_i
+      hash[:length_after] = hash[:length_after].to_i
     end
   end
 

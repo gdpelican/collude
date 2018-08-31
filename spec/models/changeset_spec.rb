@@ -1,14 +1,25 @@
 require './plugins/collude/spec/spec_helper'
 
 describe ::Changeset do
-  let(:set1) { build_changeset(0, 6,  "hello!".split('')) }
-  let(:set2) { build_changeset(6, 13, (0...6).to_a + " world!".split('')) }
-  let(:set3) { build_changeset(6, 5,  (0...5).to_a) }
-  let(:set4) { build_changeset(6, 12, (0...5).to_a + " world!".split('')) }
-  let(:set5) { build_changeset(7, 13, (0...7).to_a + " world!".split('')) }
+  let(:set1) { build_changeset(0, 6,  ["hello!"]) }
+  let(:set2) { build_changeset(6, 13, ["øø0-5", " world!"]) }
+  let(:set3) { build_changeset(6, 5,  ["øø0-4"]) }
+  let(:set4) { build_changeset(6, 12, ["øø0-4", " world!"]) }
+  let(:set5) { build_changeset(7, 13, ["øø0-6", " world!"]) }
+  let(:set6) { build_changeset(6, 6, ["el", "øø2-2", "o!!"]) }
 
   def build_changeset(before, after, changes)
     Changeset.new(length_before: before, length_after: after, changes: changes)
+  end
+
+  describe 'full_change_array' do
+    it 'can interpret a changes representation' do
+      expect(set1.full_change_array).to eq ['h','e','l','l','o','!']
+      expect(set2.full_change_array).to eq [0,1,2,3,4,5,' ','w','o','r','l','d','!']
+      expect(set3.full_change_array).to eq [0,1,2,3,4]
+      expect(set4.full_change_array).to eq [0,1,2,3,4,' ','w','o','r','l','d','!']
+      expect(set5.full_change_array).to eq [0,1,2,3,4,5,6,' ','w','o','r','l','d','!']
+    end
   end
 
   describe 'compose_with' do
@@ -43,6 +54,13 @@ describe ::Changeset do
     it 'returns nil when no composition is possible' do
       result = set1.compose_with(set5)
       expect(result).to be_nil
+    end
+
+    it 'can handle in-place changes' do
+      result = set1.compose_with(set6)
+      expect(result.length_before).to eq set1.length_before
+      expect(result.length_after).to eq set6.length_after
+      expect(result.changes).to eq "ello!!".split('')
     end
   end
 

@@ -16,14 +16,13 @@ class Collusion < PostCustomField
   collusion_accessor :user_id, :version
 
   def self.spawn(post:, user:, changeset:)
-    next_changeset = post.latest_collusion.changeset.compose_with(changeset)
     create(
       user:      user,
       post:      post,
-      version:   post.max_collusion_version.to_i + 1,
-      changeset: next_changeset.to_json,
-      value:     next_changeset.apply_to(post.latest_collusion.value.to_s)
-    )
+      version:   post.latest_collusion.version + 1,
+      changeset: changeset,
+      value:     changeset.apply_to(post.latest_collusion)
+    ) if post.can_collude?
   end
 
   def changeset
