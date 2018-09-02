@@ -13,6 +13,7 @@ after_initialize do
   collude_require 'models/changeset'
   collude_require 'models/collusion'
   collude_require 'models/post'
+  collude_require 'serializers/changeset_serializer'
   collude_require 'serializers/collusion_serializer'
   collude_require 'routes'
 

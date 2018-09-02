@@ -38,7 +38,6 @@ class Collusion < PostCustomField
     @user ||= User.find_by(id: user_id)
   end
 
-
   def user=(u)
     self.user_id = u.id
   end

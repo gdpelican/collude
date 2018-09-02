@@ -5,8 +5,8 @@ class CollusionsController < ApplicationController
 
   def create
     if create_collusion.persisted?
-      data = CollusionSerializer.new(create_collusion).as_json
-      MessageBus.publish "/collusions/#{load_post.id}", data.to_json
+      data = CollusionSerializer.new(create_collusion, scope: current_user).as_json
+      MessageBus.publish "/collusions/#{load_post.topic_id}", data
       render json: data.to_json
     else
       render json: create_collusion.errors, status: :unprocessable_entity

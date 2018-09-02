@@ -1,15 +1,12 @@
 Changeset = Struct.new(:length_before, :length_after, :changes, keyword_init: true) do
+  alias :read_attribute_for_serialization :send
+
+  def self.from_raw(raw)
+    new(length_before: 0, length_after: raw.to_s.length, changes: Array(raw))
+  end
 
   def apply_to(collusion)
     if needs_merge?(collusion) then merge(collusion) else apply(collusion) end
-  end
-
-  def to_json(opts = {})
-    {
-      length_before: length_before.to_i,
-      length_after:  length_after.to_i,
-      changes:       Array(changes)
-    }
   end
 
   private

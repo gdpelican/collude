@@ -17,11 +17,7 @@ class ::Post
       user:    self.user,
       value:   self.raw,
       version: 1,
-      changeset: Changeset.new(
-        length_before: 0,
-        length_after:  self.raw.length,
-        changes:       Array(self.raw)
-      ).to_json
+      changeset: ChangesetSerializer.new(Changeset.from_raw(self.raw)).as_json
     ) if can_collude?
   end
 

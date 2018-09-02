@@ -1,4 +1,5 @@
 import { ajax } from 'discourse/lib/ajax'
+import User from 'discourse/models/user'
 
 let messageBus = function() {
   return Discourse.__container__.lookup('message-bus:main')
@@ -12,7 +13,8 @@ let canCollude = function(post) {
 // connect to server and request initial document
 let setupCollusion = function(composer) {
   let resolve = (data) => {
-    composer.set('reply', data.collusion.value)
+    if (User.currentProp('id') == data.collusion.actor_id) { return }
+    composer.set('reply', data.collusion.value || "")
     composer.set('changesets', {
       performed: data.collusion.changeset,
       submitted: data.collusion.changeset,
@@ -28,25 +30,27 @@ let setupCollusion = function(composer) {
 let performCollusion = function(composer) {
   if (!composer.changesets) { return }
 
-  composer.set('changesets.performed', resolveChangeset(composer.changesets.performed, {
+  composer.set('changesets.performed', resolveChangeset(composer.changesets.submitted, {
     length_before: 0,
     length_after:  composer.reply.length,
     changes:       [composer.reply]
   }))
 
+  putCollusion(composer)
+}
+
+let putCollusion = _.debounce((composer) => {
   if (_.isEqual(composer.changesets.performed, composer.changesets.submitted)) { return }
 
-  Ember.run.debounce(this, () => {
-    composer.set('changesets.submitted', composer.changesets.performed)
+  composer.set('changesets.submitted', composer.changesets.performed)
 
-    ajax(`/collusions`, { type: 'POST', data: {
-      id:        composer.topic.id,
-      changeset: composer.changesets.submitted
-    }}).then((data) => {
-      composer.set('changesets.confirmed', data.collusion.changeset)
-    })
-  }, 3000)
-}
+  ajax(`/collusions`, { type: 'POST', data: {
+    id:        composer.topic.id,
+    changeset: composer.changesets.submitted
+  }}).then((data) => {
+    composer.set('changesets.confirmed', data.collusion.changeset)
+  })
+}, 1000)
 
 let teardownCollusion = function(composer) {
   messageBus().unsubscribe(`/collusions/${composer.get('topic.id')}`)
@@ -98,9 +102,9 @@ let compressChanges = function(expanded) {
 
 let fullChangesArray = function(changeset) {
   return _.reduce(changeset.changes, (array, change) => {
-    if (change.slice(0,1) == 'øø') {
-      b, e = change.replace('øø', '').split('-')
-      return array.concat(_.range(b, e+1))
+    if (change.slice(0,2) == 'øø') {
+      let [b, e] = change.replace('øø', '').split('-')
+      return array.concat(_.range(parseInt(b), parseInt(e)+1))
     } else {
       return array.concat(change.split(''))
     }
