@@ -1,4 +1,5 @@
 import { ajax } from 'discourse/lib/ajax'
+import { expandCollusion } from './collude-dom'
 import User from 'discourse/models/user'
 
 let messageBus = function() {
@@ -22,6 +23,7 @@ let setupCollusion = function(composer) {
     })
   }
 
+  expandCollusion()
   messageBus().subscribe(`/collusions/${composer.get('topic.id')}`, resolve)
   ajax(`/collusions/${composer.get('topic.id')}`).then(resolve)
 }

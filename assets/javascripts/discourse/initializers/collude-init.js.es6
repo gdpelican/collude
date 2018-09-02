@@ -55,9 +55,19 @@ export default {
           })
         },
 
+        collapse() {
+          if (this.get('model.action') == COLLUDE_ACTION) { return this.close() }
+          return this._super()
+        },
+
         close() {
           if (this.get('model.action') == COLLUDE_ACTION) { teardownCollusion(this.model) }
           return this._super()
+        },
+
+        @on('init')
+        _listenForClose() {
+          this.appEvents.on('composer:close', () => { this.close() })
         },
 
         @observes('model.reply')

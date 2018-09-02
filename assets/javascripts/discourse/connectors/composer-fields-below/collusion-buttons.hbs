@@ -1,0 +1,7 @@
+<div class='leave-collusion'>
+  {{#if site.mobileView}}
+    <a href {{action "endCollusion"}} tabindex="6" title="{{i18n 'collude.done'}}">{{d-icon "times"}}</a>
+  {{else}}
+    <a href {{action "endCollusion"}} class="btn btn-primary" tabindex="6" >{{i18n 'collude.done'}}</a>
+  {{/if}}
+</div>
