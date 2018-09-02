@@ -52,7 +52,7 @@ let putCollusion = _.debounce((composer) => {
   }}).then((data) => {
     composer.set('changesets.confirmed', data.collusion.changeset)
   })
-}, 1000)
+}, Discourse.SiteSettings.collude_debounce)
 
 let teardownCollusion = function(composer) {
   messageBus().unsubscribe(`/collusions/${composer.get('topic.id')}`)

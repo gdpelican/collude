@@ -1,3 +1,7 @@
 en:
   site_settings:
     collude_enabled: Allow post authors to enable collaborative document editing
+    collude_debounce: |
+      Amount of time, in milliseconds, to wait before storing changes to the server.
+      A larger number here will result in less network activity but more latency,
+      default is half a second (500 milliseconds).

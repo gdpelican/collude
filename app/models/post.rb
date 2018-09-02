@@ -7,7 +7,7 @@ class ::Post
 
   def latest_collusion
     return unless can_collude?
-    self.collusions.find_by("collusion ->>'version' = ?", max_collusion_version) || setup_initial_collusion!
+    self.collusions.find_by("(collusion ->>'version')::integer = ?", max_collusion_version) || setup_initial_collusion!
   end
 
   private
@@ -23,6 +23,6 @@ class ::Post
 
   def max_collusion_version
     return unless can_collude?
-    @max_collusion_version ||= self.collusions.maximum("collusion ->>'version'")
+    @max_collusion_version ||= self.collusions.maximum("(collusion ->>'version')::integer")
   end
 end
