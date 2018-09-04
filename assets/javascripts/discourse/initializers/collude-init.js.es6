@@ -31,10 +31,7 @@ export default {
       })
 
       api.modifyClass('model:composer', {
-        @computed('action')
-        isCollusion() {
-          return this.action == COLLUDE_ACTION
-        }
+        creatingCollusion: Em.computed.equal("action", COLLUDE_ACTION)
       })
 
       api.modifyClass('controller:topic', {
@@ -77,6 +74,13 @@ export default {
           this.appEvents.on('composer:close', () => { this.close() })
         },
 
+        @computed("model.whisper", "model.unlistTopic", "model.collude")
+        whisperOrUnlistTopicText(whisper, unlistTopic, collude) {
+          let _super   = this._super(whisper, unlistTopic)
+          let _collude = collude && I18n.t('collude.option_indicator')
+          return _.compact([_super, _collude]).join(', ')
+        },
+
         @observes('model.reply')
         _handleCollusion() {
           if (this.get('model.action') == COLLUDE_ACTION) { performCollusion(this.model) }
@@ -85,7 +89,21 @@ export default {
         _saveDraft() {
           if (this.get('model.action') == COLLUDE_ACTION) { return }
           return this._super()
+        },
+
+        actions: {
+          makeCollusion() {
+            this.set('model.collude', !this.model.collude)
+          }
         }
+      })
+
+      api.addToolbarPopupMenuOptionsCallback(() => {
+        return {
+          action: "makeCollusion",
+          icon: "handshake-o",
+          label: "collude.option_title"
+        };
       })
     })
   }
