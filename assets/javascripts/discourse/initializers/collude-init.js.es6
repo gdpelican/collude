@@ -30,6 +30,13 @@ export default {
         colludeOnTopic() { this.appEvents.trigger('collude-on-topic') }
       })
 
+      api.modifyClass('model:composer', {
+        @computed('action')
+        isCollusion() {
+          return this.action == COLLUDE_ACTION
+        }
+      })
+
       api.modifyClass('controller:topic', {
         init() {
           this._super()
