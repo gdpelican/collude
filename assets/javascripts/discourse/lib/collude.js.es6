@@ -6,11 +6,6 @@ let messageBus = function() {
   return Discourse.__container__.lookup('message-bus:main')
 }
 
-// returns whether a user may collaboratively edit this document
-let canCollude = function(post) {
-  return post.post_number == 1 // TODO: make this correct
-}
-
 // connect to server and request initial document
 let setupCollusion = function(composer) {
   let resolve = (data) => {
@@ -113,4 +108,4 @@ let fullChangesArray = function(changeset) {
   }, [])
 }
 
-export { canCollude, setupCollusion, teardownCollusion, performCollusion }
+export { setupCollusion, teardownCollusion, performCollusion }

@@ -3,9 +3,9 @@ import { default as computed, on, observes } from 'ember-addons/ember-computed-d
 import {
   setupCollusion,
   teardownCollusion,
-  performCollusion,
-  canCollude
+  performCollusion
 } from '../lib/collude'
+import Composer from 'discourse/models/composer'
 
 const COLLUDE_ACTION = 'colludeOnTopic'
 
@@ -13,16 +13,21 @@ export default {
   name: 'collude-button',
   initialize: function() {
     withPluginApi('0.8.6', (api) => {
+      Composer.serializeOnCreate('collude')
+
       const siteSettings = api.container.lookup('site-settings:main')
       if (!siteSettings.collude_enabled) { return }
 
+      api.includePostAttributes('collude')
       api.addPostMenuButton('collude', (post) => {
-        if (!canCollude(post)) { return }
+        if (!post.collude || !post.canEdit) { return }
         return {
-          action:   COLLUDE_ACTION,
-          icon:     'handshake-o',
-          title:    'collude.button_title',
-          position: 'first'
+          action:    COLLUDE_ACTION,
+          icon:      'handshake-o',
+          label:     'collude.collaborate',
+          title:     'collude.button_title',
+          className: 'collude create',
+          position:  'last'
         }
       })
 

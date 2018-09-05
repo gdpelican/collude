@@ -1,6 +1,7 @@
 en:
   js:
     collude:
+      collaborate: "Collaborate"
       option_title: "Toggle Realtime Editing"
       option_indicator: "realtime editing"
       button_title: "Collaboratively edit this topic"

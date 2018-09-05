@@ -6,3 +6,7 @@ plugins:
     default: 500
     min: 100
     client: true
+  collude_min_trust_level:
+    default: 2
+    min: 0
+    max: 4
