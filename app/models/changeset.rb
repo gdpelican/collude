@@ -30,6 +30,6 @@ Changeset = Struct.new(:length_before, :length_after, :changes, keyword_init: tr
   end
 
   def merge(collusion)
-    # TODO
+    ChangesetMerger.new(self, collusion).merge!
   end
 end

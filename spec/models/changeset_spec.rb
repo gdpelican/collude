@@ -8,6 +8,9 @@ describe ::Changeset do
   let(:set5) { build_changeset(7, 13, ["øø0-6", " world!"]) }
   let(:set6) { build_changeset(6, 6, ["el", "øø2-2", "o!!"]) }
 
+  let(:set2_merge) { build_changeset(5, 11, ["øø0-4", " dog!"]) }
+  let(:needs_merge) { Collusion.new(value: "hello world!", changeset: set2) }
+
   def build_changeset(before, after, changes)
     Changeset.new(length_before: before, length_after: after, changes: changes)
   end
@@ -65,5 +68,8 @@ describe ::Changeset do
   end
 
   describe 'merge' do
+    it 'can handle a merge with a deletion' do
+      expect(set2_merge.apply_to(needs_merge)).to eq "hello dog! world!"
+    end
   end
 end
