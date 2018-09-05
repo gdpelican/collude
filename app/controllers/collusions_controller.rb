@@ -13,6 +13,12 @@ class CollusionsController < ApplicationController
     end
   end
 
+  def toggle
+    load_post.custom_fields['collude'] = !load_post.custom_fields['collude']
+    load_post.save
+    render json: { success: :ok }
+  end
+
   private
 
   def create_collusion

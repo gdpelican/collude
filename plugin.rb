@@ -18,14 +18,7 @@ after_initialize do
   collude_require 'serializers/collusion_serializer'
   collude_require 'routes'
 
-  add_permitted_post_create_param :collude
   register_post_custom_field_type 'collude', :boolean
-
-  on :topic_created do |topic, opts|
-    next unless opts[:collude] && post = topic.posts.find_by(post_number: 1)
-    post.custom_fields[:collude] = true
-    post.save
-  end
 
   add_to_serializer :post, :collude do
     object.is_first_post? && object.custom_fields['collude']

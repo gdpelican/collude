@@ -2,7 +2,7 @@ en:
   js:
     collude:
       collaborate: "Collaborate"
-      option_title: "Toggle Realtime Editing"
-      option_indicator: "realtime editing"
+      enable_collusion: "Allow collaborative editing"
+      disable_collusion: "Disable collaborative editing"
       button_title: "Collaboratively edit this topic"
       done: "Done"

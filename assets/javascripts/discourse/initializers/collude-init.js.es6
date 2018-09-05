@@ -3,7 +3,8 @@ import { default as computed, on, observes } from 'ember-addons/ember-computed-d
 import {
   setupCollusion,
   teardownCollusion,
-  performCollusion
+  performCollusion,
+  toggleCollusion
 } from '../lib/collude'
 import Composer from 'discourse/models/composer'
 
@@ -28,6 +29,25 @@ export default {
           title:     'collude.button_title',
           className: 'collude create',
           position:  'last'
+        }
+      })
+
+      api.reopenWidget('post-admin-menu', {
+        html(attrs, state) {
+          let contents = this._super(attrs, state)
+          if (!this.currentUser.staff || attrs.post_number != 1) { return contents }
+
+          contents.push(this.attach('post-admin-menu-button', {
+            action:    'toggleCollusion',
+            icon:      'handshake-o',
+            className: 'admin-collude',
+            label:     attrs.collude ? 'collude.disable_collusion' : 'collude.enable_collusion'
+          }))
+          return contents
+        },
+
+        toggleCollusion() {
+          toggleCollusion(this.attrs.id).then(() => { this.scheduleRerender() })
         }
       })
 
@@ -79,13 +99,6 @@ export default {
           this.appEvents.on('composer:close', () => { this.close() })
         },
 
-        @computed("model.whisper", "model.unlistTopic", "model.collude")
-        whisperOrUnlistTopicText(whisper, unlistTopic, collude) {
-          let _super   = this._super(whisper, unlistTopic)
-          let _collude = collude && I18n.t('collude.option_indicator')
-          return _.compact([_super, _collude]).join(', ')
-        },
-
         @observes('model.reply')
         _handleCollusion() {
           if (this.get('model.action') == COLLUDE_ACTION) { performCollusion(this.model) }
@@ -94,21 +107,7 @@ export default {
         _saveDraft() {
           if (this.get('model.action') == COLLUDE_ACTION) { return }
           return this._super()
-        },
-
-        actions: {
-          makeCollusion() {
-            this.set('model.collude', !this.model.collude)
-          }
         }
-      })
-
-      api.addToolbarPopupMenuOptionsCallback(() => {
-        return {
-          action: "makeCollusion",
-          icon: "handshake-o",
-          label: "collude.option_title"
-        };
       })
     })
   }

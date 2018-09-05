@@ -6,6 +6,10 @@ let messageBus = function() {
   return Discourse.__container__.lookup('message-bus:main')
 }
 
+let store = function() {
+  return Discourse.__container__.lookup("service:store")
+}
+
 // connect to server and request initial document
 let setupCollusion = function(composer) {
   let resolve = (data) => {
@@ -20,7 +24,7 @@ let setupCollusion = function(composer) {
 
   expandCollusion()
   messageBus().subscribe(`/collusions/${composer.get('topic.id')}`, resolve)
-  ajax(`/collusions/${composer.get('topic.id')}`).then(resolve)
+  return ajax(`/collusions/${composer.get('topic.id')}`).then(resolve)
 }
 
 // push local changes to the server
@@ -33,8 +37,17 @@ let performCollusion = function(composer) {
     changes:       [composer.reply]
   }))
 
-  putCollusion(composer)
+  return putCollusion(composer)
 }
+
+let toggleCollusion = function(postId) {
+  return store().find('post', postId).then((post) => {
+    post.set('collude', !post.collude)
+    return ajax(`/collusions/${post.topic_id}/toggle`, { type: 'POST' })
+  })
+}
+
+//// private
 
 let putCollusion = _.debounce((composer) => {
   if (_.isEqual(composer.changesets.performed, composer.changesets.submitted)) { return }
@@ -108,4 +121,4 @@ let fullChangesArray = function(changeset) {
   }, [])
 }
 
-export { setupCollusion, teardownCollusion, performCollusion }
+export { setupCollusion, teardownCollusion, performCollusion, toggleCollusion }
