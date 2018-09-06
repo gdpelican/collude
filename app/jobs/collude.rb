@@ -1,7 +1,5 @@
 module Jobs
   class Collude < Jobs::Base
-    sidekiq_options queue: 'normal'
-
     def execute(args)
       return unless @post = Post.find_by(id: args[:post_id])
       @post.update(raw: @post.latest_collusion.value)
