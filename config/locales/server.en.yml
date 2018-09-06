@@ -4,9 +4,9 @@ en:
     collude_min_trust_level: Minimum trust level for users to participate in collaborative document editing
     collude_debounce: |
       Amount of time, in milliseconds, to wait before storing changes to the server when typing.
-      A larger number here will result in less network activity but more latency when live updating other clients.
+      A larger number here will result in less network activity, but more time for other people writing the post to see your changes.
       Default is half a second (500 milliseconds).
     collude_server_debounce: |
       Amount of time, in seconds, the server will wait before updating the post's content.
-      A larger number here will result in less database writes, but more latency when updating the post's content
+      A larger number here will result in fewer database writes, but more time for other people reading the post to see changes.
       Default is 10 seconds.
