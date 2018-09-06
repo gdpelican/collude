@@ -6,7 +6,7 @@ module Collude
 
     def schedule!
       if existing_job
-        existing_job.reschedule(15.seconds.from_now)
+        existing_job.reschedule(SiteSetting.collude_server_debounce.seconds.from_now)
         puts "Rescheduling collude job for #{15.seconds.from_now}"
       else
         Jobs.enqueue :collude, post_id: @post.id

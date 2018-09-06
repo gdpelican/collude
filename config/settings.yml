@@ -6,6 +6,9 @@ plugins:
     default: 500
     min: 100
     client: true
+  collude_server_debounce:
+    default: 10
+    min: 2
   collude_min_trust_level:
     default: 2
     min: 0
