@@ -14,9 +14,11 @@ after_initialize do
   collude_require 'models/changeset'
   collude_require 'models/collusion'
   collude_require 'models/post'
+  collude_require 'jobs/collude'
   collude_require 'serializers/changeset_serializer'
   collude_require 'serializers/collusion_serializer'
-  collude_require 'services/changeset_merger'
+  collude_require 'services/merger'
+  collude_require 'services/scheduler'
   collude_require 'routes'
 
   register_post_custom_field_type 'collude', :boolean
