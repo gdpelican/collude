@@ -22,7 +22,6 @@ class ::Post
   end
 
   def max_collusion_version
-    return unless can_collude?
-    @max_collusion_version ||= self.collusions.maximum("(collusion ->>'version')::integer")
+    self.collusions.maximum("(collusion ->>'version')::integer") if can_collude?
   end
 end
