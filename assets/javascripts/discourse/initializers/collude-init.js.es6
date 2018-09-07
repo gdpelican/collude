@@ -32,6 +32,19 @@ export default {
         }
       })
 
+      api.reopenWidget('post-menu', {
+        menuItems() {
+          let result = this._super()
+          if (this.attrs.collude) {
+            this.attrs.wiki = false
+            if (_.contains(result, 'edit')) {
+              result.splice(result.indexOf('edit'), 1)
+            }
+          }
+          return result
+        }
+      })
+
       api.reopenWidget('post-admin-menu', {
         html(attrs, state) {
           let contents = this._super(attrs, state)

@@ -1,4 +1,4 @@
-{{#if model.isCollusion}}
+{{#if model.creatingCollusion}}
   <div class='leave-collusion'>
     {{#if site.mobileView}}
       <a href {{action "endCollusion"}} tabindex="6" title="{{i18n 'collude.done'}}">{{d-icon "times"}}</a>
