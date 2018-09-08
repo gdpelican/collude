@@ -1,7 +1,7 @@
 en:
   js:
     collude:
-      collaborate: "Collaborate"
+      collaborate: "Edit"
       enable_collusion: "Allow collaborative editing"
       disable_collusion: "Disable collaborative editing"
       button_title: "Collaboratively edit this topic"
