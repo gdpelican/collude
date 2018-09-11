@@ -18,7 +18,6 @@ module Collude
     private
 
     def range_from(change)
-      # TODO account for author_id
       Range.new(*change[2..-1].split('-').map(&:to_i)) if change[0..1] == 'øø'
     end
   end
