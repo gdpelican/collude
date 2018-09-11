@@ -17,6 +17,7 @@ after_initialize do
   collude_require 'jobs/collude'
   collude_require 'serializers/changeset_serializer'
   collude_require 'serializers/collusion_serializer'
+  collude_require 'services/applier'
   collude_require 'services/merger'
   collude_require 'services/scheduler'
   collude_require 'routes'

@@ -17,8 +17,16 @@ class ::Post
       user:    self.user,
       value:   self.raw,
       version: 1,
-      changeset: ChangesetSerializer.new(Changeset.from_raw(self.raw)).as_json
+      changeset: ChangesetSerializer.new(initial_changeset).as_json
     ) if can_collude?
+  end
+
+  def initial_changeset
+    Changeset.new(
+      length_before: 0,
+      length_after: self.raw.to_s.length,
+      changes: Array([self.raw, self.user_id].join("ØØ"))
+    )
   end
 
   def max_collusion_version
