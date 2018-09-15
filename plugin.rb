@@ -27,9 +27,4 @@ after_initialize do
   add_to_serializer :post, :collude do
     object.is_first_post? && object.custom_fields['collude']
   end
-
-  if !PostCustomField.new.respond_to?(:collusion)
-    collude_require 'migrations/add_collusions'
-    AddCollusions.new.up
-  end
 end
